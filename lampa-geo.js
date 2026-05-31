@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    // ფუნქცია, რომელიც რთავს ვიდეოს
+    // ფუნქცია, რომელიც რთავს სატესტო ვიდეოს
     function playGeoMovie(movieData) {
         var title = movieData.original_title || movieData.title;
         var year = new Date(movieData.release_date || movieData.first_air_date).getFullYear();
@@ -28,31 +28,32 @@
         });
     }
 
-    // პლაგინის გაშვება
+    // პლაგინის გაშვება ლამპაში
     if (window.Lampa) {
         Lampa.Plugins.add('georgian_sources', {
             title: 'Georgian Streaming',
             description: 'ფილმები ქართულად',
             auth: false,
             start: function () {
-                // ტესტირებისთვის: ლამპას ჩართვისას ეგრევე ამოაგდებს შეტყობინებას
-                setTimeout(function() {
-                    Lampa.Noty.show('ქართული პლაგინი წარმატებით ჩაიტვირთა!');
-                }, 2000);
-
-                // ვამატებთ ახალ ჩანართს (Tab) ფილმის შიდა მენიუში
+                // ვუსმენთ ფილმის გვერდის გახსნას
                 Lampa.Events.on('activity', function (event) {
                     if (event.component === 'full' && event.type === 'start') {
                         var activity = event.target;
                         
-                        // ვამატებთ ახალ პუნქტს მენიუში (მსახიობების და მსგავსი ფილმების გვერდით)
-                        activity.page.items.push({
-                            title: 'ყურება ქართულად',
-                            id: 'geo_online',
-                            onSelect: function() {
+                        // ვამოწმებთ, რომ ღილაკი უკვე არ არის ჩახატული
+                        if (activity.dom.find('.button--geo-sources').length === 0) {
+                            
+                            // ვქმნით მწვანე GEO ღილაკს
+                            var geoButton = $('<div class="full-start__button selector button--geo-sources" style="background: #00b060; color: #fff; font-weight: bold; padding: 10px 15px; border-radius: 6px; margin-left: 10px; display: inline-flex; align-items: center; cursor: pointer;"><span style="font-size: 14px;">GEO</span></div>');
+                            
+                            // ღილაკზე დაჭერის ლოგიკა
+                            geoButton.on('hover:enter', function () {
                                 playGeoMovie(activity.data);
-                            }
-                        });
+                            });
+
+                            // ვსვამთ ღილაკს "Смотреть"-ის გვერდით
+                            activity.dom.find('.full-start__buttons').append(geoButton);
+                        }
                     }
                 });
             }
